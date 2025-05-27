@@ -3,12 +3,16 @@ import random
 
 myApp = tk.Tk()
 
-
+#Número de bombas
 bombs = 10
 
 map = []
 buttons = []
+
+# Altura del juego
 height  = 15
+
+# Ancho del juego
 width = 10
 myApp.title("Mine Sweeper")
 
@@ -28,6 +32,11 @@ for i in range(0,height):
     buttons.append(otherNewList)
 
 
+#Función para visualizar el mapa en la terminal
+#Solo usar para depuración 
+def printMap(gameMap: list):
+    for i in range(0,len(gameMap)):
+        print(gameMap[i])
 
 
 # Initialize the map with 0s and place bombs randomly
@@ -57,19 +66,14 @@ for i in range(0,height):
                 map[i][j] = getNeighborBombs(map,j,i)
 
 
-for i in range(0,height):
-    print(map[i])
+
+#printMap(map)
 
 
 
 
 
 def buttonClick(gameMap: list, name : str,buttonSet : list):
-    global height, width
-    #print(name)
-    #print(name[:name.index('F')],name[name.index('e')+1:])
-
-
     buttonHeight =int(name[:name.index('F')])
     buttonWidth = int(name[name.index('e')+1:])
 
@@ -77,8 +81,10 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
         buttonSet[buttonHeight][buttonWidth]["text"] = "BOMB!"
     else:
         buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
-        #print(f"{getNeighborBombs(gameMap,int(name[0]),int(name[1]))} bombs around {name}")
-    
+
+
+def flag( event ):
+    event.widget.config(text="F", bg="yellow")
 
 
 
@@ -95,6 +101,7 @@ for i in range(0,height):
             row = i,
             column = j
         )
+        button.bind("<Button-2>", flag)
         #print(type(map[i][j]))
         buttons[i][j] = button
 
