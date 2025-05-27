@@ -1,6 +1,6 @@
 import tkinter as tk
-import random 
-
+import random
+import sys
 myApp = tk.Tk()
 
 #Número de bombas
@@ -101,7 +101,10 @@ for i in range(0,height):
             row = i,
             column = j
         )
-        button.bind("<Button-2>", flag)
+        if sys.platform == "darwin":
+            button.bind("<Button-2>", flag)
+        else:
+            button.bind("<Button-3>", flag)
         #print(type(map[i][j]))
         buttons[i][j] = button
 
