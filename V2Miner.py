@@ -274,6 +274,21 @@ def lose():
                         bg="black",
                         fg="white")
     losetime.pack()
+       # pedir nombre del jugador
+    def guardar():
+        nombre = nombreEntry.get()
+        if nombre:
+            puntaje = calcularPuntaje()  
+            guardarPuntaje(nombre, puntaje)
+            mostrarTop3()
+
+    nombreLabel = tk.Label(loseFrame, text="Nombre:")
+    nombreLabel.grid(row=1, column=0)
+    nombreEntry = tk.Entry(loseFrame)
+    nombreEntry.grid(row=1, column=1)
+
+    guardarBtn = tk.Button(loseFrame, text="Guardar Puntaje", command=guardar)
+    guardarBtn.grid(row=2, column=0, columnspan=2)
 
 
 # Defines behavior for left click on a button
