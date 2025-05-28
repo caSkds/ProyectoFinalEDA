@@ -2,32 +2,40 @@ import tkinter as tk
 import random
 import sys
 import time
+
+# Variables globales del minijuego
+secuencia = []#Donde se va a guardar el minigame
+flechas = {1: "↑", 2: "↓", 3: "←", 4: "→"}#El diccionario para la secuencia
+temporizadorPaTodos = None#Es como un ID para el temporizador en caso de que vuelva a caer; se reinicie
+tiempo_inicio = None#Para que se vaya actualizando el tiempo conforme pase el tiempo
+
+#Las variables de mi tio
 myApp = tk.Tk()
-
 startTime = time.time()
-
 finalTime = 0 # Calculado al final 
-
 
 gameFrame = tk.Frame(myApp)
 gameFrame.pack()
 
 loseFrame = tk.Frame(myApp,width =300, height =200)
-
 # Esta es una prueba de la pantalla de derrota
 #Libertad de modificarla
 # Más detalles están en la función lose(), casi hasta abajo del código
 loseLabel = tk.Label(loseFrame, text = "You Lose")
 
+# Frame del minijuego
+minijuegoFrame = tk.Frame(myApp)
 
-
+# Variables del minijuego en el frame
+muestraFlechas = tk.Label(minijuegoFrame)
+info = tk.Label(minijuegoFrame)
+etiqueta_tiempo = tk.Label(minijuegoFrame)
 
 #Número de poderes en el tablero
 bombs = 10
 shields = 5
 radars = 3
 powerUps = 2
-
 
 remainingShields = 0
 
@@ -43,7 +51,6 @@ specialButtons = {
 
 # Altura del juego
 height  = 15
-
 # Ancho del juego
 width = 10
 myApp.title("Mine Sweeper")
@@ -63,7 +70,77 @@ for i in range(0,height):
         otherNewList.append(0)
     buttons.append(otherNewList)
 
+#FUNCIONES DEL MINIJUEGO
+def actualizarTemporizador():
+    global temporizadorPaTodos, tiempo_inicio #Variables que se van a ir actualizando
+    tiempoTranscurrido = int(time.time() - tiempo_inicio) #El tiempo de inicio se va a ir actualizando conforme al tiempo
+    tiempoRestante = 4 - tiempoTranscurrido #Aquí podríamos añadir mas tiempo; la verdad no se
+    etiqueta_tiempo.config(text=f'Tiempo: {tiempoRestante} s') #Esta el la label para el tiempo
+    
+    if tiempoRestante > 0:
+        temporizadorPaTodos = myApp.after(100, actualizarTemporizador) #Se va actualizando el id del temporizador
+    else:
+        info.config(text="Se acabó el tiempo")#Si se llegó a 0; se acaba el juego
+        muestraFlechas.config(text="") #Desaparecen las flechas
+        myApp.unbind('<Key>') #Si se modifica; pongan Key con K no k; perdi mas de 2 horas dx
+        # Si se acaba el tiempo, va a la pantalla de derrota
+        irADerrota()#Se murio la derrota
 
+def iniciarJuego():
+    global secuencia, tiempo_inicio, temporizadorPaTodos
+    if temporizadorPaTodos:
+        myApp.after_cancel(temporizadorPaTodos) #Si ya habia un temporizador; lo elimina y empieza uno nuevo
+    tiempo_inicio = time.time() #El tiempo de inicio inicia en 0
+    secuencia = [random.randint(1, 4) for i in range(random.randint(5, 10))] #Se va a ingresar a la secuencia 5 a 10 numeros entre 1 y 4
+    muestraFlechas.config(text=' '.join([flechas[num] for num in secuencia])) #Se muestran las flechas en la etiqueta
+    info.config(text="¡Ingresa la secuencia!") #La label informativa 
+    actualizarTemporizador() #Se inicia el nuevo temporizador
+    myApp.bind('<Key>', teclaPresionada) #Se habilitan las flechas
+
+def teclaPresionada(tecla):
+    global secuencia
+    convertidor = {'Up': 1, 'Down': 2, 'Left': 3, 'Right': 4} #El diccionario convierte las teclas ingresadas en numeros
+    if secuencia: #Mientras la secuencia contenga algo:
+        if convertidor[tecla.keysym] == secuencia[0]: #Si el jugador le atinó:
+            secuencia.pop(0) #Elimina de la secuencia el numero ingresado
+            muestraFlechas.config(text=' '.join([flechas[num] for num in secuencia])) #Se actualiza el visor de flechas
+            if not secuencia: #Si acabó satisfactoriamente la secuencia:
+                info.config(text="Bomba desarmada") #Muestra la leyenda
+                myApp.unbind('<Key>') #Se quita lo de las key
+                if temporizadorPaTodos:
+                    myApp.after_cancel(temporizadorPaTodos) #Detiene y cancela el temporizador
+                # Si gana, regresa al juego principal
+                volverAlJuego() #Se continua en la partida
+        else:
+            info.config(text="La bomba explotó") #Si falla; pierde la partida
+            muestraFlechas.config(text="") #Ya no se muestra la secuencia en el label
+            myApp.unbind('<Key>') #Se quitan los permisos para las flechitas
+            if temporizadorPaTodos:
+                myApp.after_cancel(temporizadorPaTodos) #Se detiene el temporizador
+            # Si explota la bomba, va a la pantalla de derrota
+            irADerrota() #Va a la pantalla de derrota
+
+def mostrarMinijuego():
+    gameFrame.pack_forget() #Se oculta el widget del buscaminas
+    minijuegoFrame.pack()  #Se muestra el minijuego
+    muestraFlechas.pack() #Se muestra la secuencia
+    info.pack() #Se muestra la info
+    etiqueta_tiempo.pack() #Se muestra el tiempo
+    iniciarJuego() #Se inicia el juego
+
+def volverAlJuego():
+    minijuegoFrame.pack_forget() #Se oculta el minijuego si se gana
+    muestraFlechas.config(text="") #Se ocultan las labels
+    info.config(text="") 
+    etiqueta_tiempo.config(text="")
+    gameFrame.pack() #Se vuelve al buscaminas
+
+def irADerrota():
+    minijuegoFrame.pack_forget() #Se oculta el minijuego
+    lose() #Se pierde
+
+
+#FUNCIONES DEL BUSCAMINAS
 #Función para visualizar el mapa en la terminal
 #Solo usar para depuración 
 def printMap(gameMap: list):
@@ -163,7 +240,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 
     if gameMap[buttonHeight][buttonWidth] == 500:
         if remainingShields == 0:
-            lose()
+            mostrarMinijuego()
         else:
             remainingShields-=1
     elif gameMap[buttonHeight][buttonWidth] == 100:
