@@ -260,6 +260,10 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                 else:
                     buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
 
+def calcularPuntaje(): #Calculo provisional de puntaje
+    final_time = time.time() - startTime
+    puntaje = round(final_time, 2)
+    return puntaje
 
 def lose():
     global finalTime
