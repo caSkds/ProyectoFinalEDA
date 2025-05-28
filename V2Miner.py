@@ -1,7 +1,11 @@
 import tkinter as tk
+from tkinter import messagebox
 import random
 import sys
 import time
+
+from openpyxl import Workbook, load_workbook
+import os
 
 def salir():
     myApp.destroy()
