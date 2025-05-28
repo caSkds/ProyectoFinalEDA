@@ -5,16 +5,31 @@ import time
 myApp = tk.Tk()
 
 startTime = time.time()
+
+finalTime = 0 # Calculado al final 
+
+
 gameFrame = tk.Frame(myApp)
 gameFrame.pack()
 
-#Número de bombas
+loseFrame = tk.Frame(myApp,width =300, height =200)
+
+# Esta es una prueba de la pantalla de derrota
+#Libertad de modificarla
+# Más detalles están en la función lose(), casi hasta abajo del código
+loseLabel = tk.Label(loseFrame, text = "You Lose")
+
+
+
+
+#Número de poderes en el tablero
 bombs = 10
 shields = 5
 radars = 3
 powerUps = 2
 
 
+remainingShields = 0
 
 map = []
 mapGenerated = False
@@ -123,12 +138,21 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                     buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
 
 
-
+def lose():
+    global finalTime
+    finalTime = time.time() - startTime
+    print(finalTime)
+    gameFrame.pack_forget()
+    loseFrame.pack()
+    loseLabel.grid(row = 0, column = 0)
+    losetime = tk.Label(loseFrame, text = str(round(finalTime,2)))
+    losetime.grid(row = 0, column = 1)
 
 
 # Defines behavior for left click on a button
 def buttonClick(gameMap: list, name : str,buttonSet : list):
     global mapGenerated
+    global remainingShields
 
     buttonHeight =int(name[:name.index('F')])
     buttonWidth = int(name[name.index('e')+1:])
@@ -138,11 +162,15 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 
 
     if gameMap[buttonHeight][buttonWidth] == 500:
-        buttonSet[buttonHeight][buttonWidth]["text"] = "BOMB!"
+        if remainingShields == 0:
+            lose()
+        else:
+            remainingShields-=1
     elif gameMap[buttonHeight][buttonWidth] == 100:
-        radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+        buttonSet[buttonHeight][buttonWidth]["text"] = "SHIELD"
+        
     elif gameMap[buttonHeight][buttonWidth] == 200:
-        buttonSet[buttonHeight][buttonWidth]["text"] = "RADAR"
+        radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
     elif gameMap[buttonHeight][buttonWidth] == 300: 
         buttonSet[buttonHeight][buttonWidth]["text"] = "POWER UP"
     else:
