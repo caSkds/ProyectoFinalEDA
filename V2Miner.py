@@ -268,31 +268,48 @@ def calcularPuntaje(): #Calculo provisional de puntaje
 def lose():
     global finalTime
     finalTime = time.time() - startTime
-    print(finalTime)
+    puntaje = calcularPuntaje()
+
     gameFrame.pack_forget()
+
+    # Limpiar loseFrame
+    for widget in loseFrame.winfo_children():
+        widget.destroy()
+
+    loseFrame.configure(bg="black")  # Fondo oscuro coherente
+
     loseFrame.pack()
-    loseLabel.pack(pady=50)
-    losetime = tk.Label(loseFrame,
-                        font = ("ariel",20),
-                        text ="Tiempo:\t" + str(round(finalTime,2)),
-                        bg="black",
-                        fg="white")
-    losetime.pack()
-       # pedir nombre del jugador
+
+    loseLabel = tk.Label(loseFrame, text="¡Perdiste!", font=("Arial", 30), bg="black", fg="white")
+    loseLabel.grid(row=0, column=0, columnspan=2, pady=10)
+
+    losetime = tk.Label(loseFrame, text="Tiempo: " + str(puntaje), font=("Arial", 20), bg="black", fg="white")
+    losetime.grid(row=1, column=0, columnspan=2, pady=10)
+
+    nombreLabel = tk.Label(loseFrame, text="Nombre:", font=("Arial", 14), bg="black", fg="white")
+    nombreLabel.grid(row=2, column=0, pady=5, padx=10, sticky="e")
+
+    nombreEntry = tk.Entry(loseFrame, font=("Arial", 14), bg="white", fg="black")
+    nombreEntry.grid(row=2, column=1, pady=5, padx=10)
+
     def guardar():
         nombre = nombreEntry.get()
-        if nombre:
-            puntaje = calcularPuntaje()  
+        if nombre.strip():
             guardarPuntaje(nombre, puntaje)
+            print("Puntaje guardado:", nombre, puntaje)
             mostrarTop3()
 
-    nombreLabel = tk.Label(loseFrame, text="Nombre:")
-    nombreLabel.grid(row=1, column=0)
-    nombreEntry = tk.Entry(loseFrame)
-    nombreEntry.grid(row=1, column=1)
-
-    guardarBtn = tk.Button(loseFrame, text="Guardar Puntaje", command=guardar)
-    guardarBtn.grid(row=2, column=0, columnspan=2)
+    guardarBtn = tk.Button(
+        loseFrame,
+        text="Guardar Puntaje",
+        command=guardar,
+        font=("Arial", 14),
+        bg="white",
+        fg="black",
+        activebackground="gray",
+        activeforeground="white"
+    )
+    guardarBtn.grid(row=3, column=0, columnspan=2, pady=10)
 
 
 # Defines behavior for left click on a button
