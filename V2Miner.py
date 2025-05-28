@@ -1,11 +1,7 @@
 import tkinter as tk
-from tkinter import messagebox
 import random
 import sys
 import time
-
-from openpyxl import Workbook, load_workbook
-import os
 
 def salir():
     myApp.destroy()
@@ -45,7 +41,7 @@ loseLabel = tk.Label(loseFrame,
                      highlightbackground="purple",
                      highlightthickness=2,
                      fg="white",
-                     font=("arial",30),
+                     font=("arial",50),
                      padx=5,
                      pady=5)
 
@@ -57,6 +53,8 @@ minijuegoFrame = tk.Frame(myApp,
 muestraFlechas = tk.Label(minijuegoFrame)
 info = tk.Label(minijuegoFrame)
 etiqueta_tiempo = tk.Label(minijuegoFrame)
+
+
 
 #Número de poderes en el tablero
 bombs = 25
@@ -185,6 +183,54 @@ def irADerrota():
     minijuegoFrame.pack_forget() #Se oculta el minijuego
     lose() #Se pierde
 
+def rePlay():
+    global map, buttons, mapGenerated, remainingShields
+    # Oculta el frame de derrota y muestra el del juego
+    loseFrame.pack_forget()
+    gameFrame.pack()
+    # Limpiar el frame del juego
+    for widget in gameFrame.winfo_children():
+        widget.destroy()
+    # Reiniciar variables
+    map = []
+    buttons = []
+    mapGenerated = False
+    remainingShields = 0
+    # Volver a crear la matriz y los botones
+    for i in range(height):
+        newList = []
+        for j in range(width):
+            newList.append(0)
+        map.append(newList)
+    for i in range(height):
+        otherNewList = []
+        for j in range(width):
+            otherNewList.append(0)
+        buttons.append(otherNewList)
+    # Volver a crear los botones en el frame
+    for i in range(height):
+        for j in range(width):
+            currentName = str(i)+str(False)+str(j)
+            cell_frame = tk.Frame(gameFrame,
+                                  highlightbackground="purple",
+                                  highlightthickness=1,
+                                  bg="black")
+            button  = tk.Button(cell_frame,
+                    name = str(i)  +str(j),
+                    bg="black",
+                    border=0,
+                    fg="white",
+                    width=4,
+                    height=2,
+                    activebackground="green yellow",
+                    command =  lambda buttonName = currentName: buttonClick(map,buttonName,buttons))
+            cell_frame.grid(row=i, column=j)
+            button.pack()
+            if sys.platform == "darwin":
+                button.bind("<Button-2>", flag)
+            else:
+                button.bind("<Button-3>", flag)
+            buttons[i][j] = button
 
 #FUNCIONES DEL BUSCAMINAS
 #Función para visualizar el mapa en la terminal
@@ -260,56 +306,68 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                 else:
                     buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
 
-def calcularPuntaje(): #Calculo provisional de puntaje
-    final_time = time.time() - startTime
-    puntaje = round(final_time, 2)
-    return puntaje
 
 def lose():
     global finalTime
     finalTime = time.time() - startTime
-    puntaje = calcularPuntaje()
+    print(finalTime)
 
     gameFrame.pack_forget()
-
-    # Limpiar loseFrame
     for widget in loseFrame.winfo_children():
         widget.destroy()
-
-    loseFrame.configure(bg="black")  # Fondo oscuro coherente
-
     loseFrame.pack()
 
-    loseLabel = tk.Label(loseFrame, text="¡Perdiste!", font=("Arial", 30), bg="black", fg="white")
-    loseLabel.grid(row=0, column=0, columnspan=2, pady=10)
+    # Crea el label de "You Lose" aquí
+    loseLabel = tk.Label(loseFrame, 
+                         text = "You Lose",
+                         bg="black",
+                         highlightbackground="purple",
+                         highlightthickness=2,
+                         fg="white",
+                         font=("arial",50),
+                         padx=5,
+                         pady=5)
+    losetime = tk.Label(loseFrame,
+                        font = ("ariel",20),
+                        text ="Tiempo:\t" + str(round(finalTime,2)),
+                        bg="black",
+                        fg="white")
+    loseScore = tk.Label(loseFrame,
+                        font = ("ariel",20),
+                        text ="Puntuacion:\t",
+                        bg="black",
+                        fg="white")
+    lose_rePlay_Frame = tk.Frame(loseFrame,
+                                highlightbackground="green yellow",
+                                highlightthickness=1,
+                                bg="black")
+    lose_rePlay_Button = tk.Button(lose_rePlay_Frame,
+                              text="Reintentarlo",
+                              fg="green yellow",
+                              bg="black",
+                              font=("",20),
+                              command=rePlay,
+                              border=0)
+    lose_exit_Frame = tk.Frame(loseFrame,
+                             highlightbackground="magenta2",
+                             highlightthickness=1,
+                             bg="black")
+    lose_exit_Button = tk.Button(lose_exit_Frame,
+                              text="Salir",
+                              fg="magenta2",
+                              bg="black",
+                              font=("",20),
+                              command=salir,
+                              border=0)
 
-    losetime = tk.Label(loseFrame, text="Tiempo: " + str(puntaje), font=("Arial", 20), bg="black", fg="white")
-    losetime.grid(row=1, column=0, columnspan=2, pady=10)
-
-    nombreLabel = tk.Label(loseFrame, text="Nombre:", font=("Arial", 14), bg="black", fg="white")
-    nombreLabel.grid(row=2, column=0, pady=5, padx=10, sticky="e")
-
-    nombreEntry = tk.Entry(loseFrame, font=("Arial", 14), bg="white", fg="black")
-    nombreEntry.grid(row=2, column=1, pady=5, padx=10)
-
-    def guardar():
-        nombre = nombreEntry.get()
-        if nombre.strip():
-            guardarPuntaje(nombre, puntaje)
-            print("Puntaje guardado:", nombre, puntaje)
-            mostrarTop3()
-
-    guardarBtn = tk.Button(
-        loseFrame,
-        text="Guardar Puntaje",
-        command=guardar,
-        font=("Arial", 14),
-        bg="white",
-        fg="black",
-        activebackground="gray",
-        activeforeground="white"
-    )
-    guardarBtn.grid(row=3, column=0, columnspan=2, pady=10)
+    # Empaqueta los widgets en el orden correcto
+    loseLabel.pack(pady=50)
+    losetime.pack()
+    loseScore.pack(pady=20)
+    lose_rePlay_Button.pack()
+    lose_rePlay_Frame.pack(pady=40)
+    lose_exit_Button.pack()
+    lose_exit_Frame.pack(pady=20)
 
 
 # Defines behavior for left click on a button
@@ -341,7 +399,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 
 # Defines flagging a button
 def flag( event ):
-    event.widget.config(text="F")
+    event.widget.config(text="🚩")
 
 
 
@@ -386,83 +444,6 @@ for i in range(0,height):
             button.bind("<Button-3>", flag)
         #print(type(map[i][j]))
         buttons[i][j] = button
-
-def quicksort(lista):
-    if len(lista) <= 1:
-        return lista
-    
-    pivote = lista[0]
-    iguales = [pivote]
-    mayores = []
-    menores = []
-
-    for elemento in lista[1:]:
-        if elemento[1] > pivote[1]:
-            mayores.append(elemento)
-        elif elemento[1] < pivote[1]:
-            menores.append(elemento)
-        else:
-            iguales.append(elemento)
-
-    return quicksort(mayores) + iguales + quicksort(menores)
-
-def guardarPuntaje(nombre, puntaje, archivo="puntajes.xlsx"):
-    if os.path.exists(archivo):
-        libro = load_workbook(archivo)
-        hoja = libro.active
-    else:
-        libro = Workbook()
-        hoja = libro.active
-        hoja.append(["Nombre", "Puntaje"])
-
-    # si hay datos existentes lleo
-    datos = {}
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
-        nombreExistente, puntajeExistente = fila
-        if nombreExistente not in datos or puntajeExistente > datos[nombreExistente]:
-            datos[nombreExistente] = puntajeExistente
-
-    # actualiz puntje
-    if nombre in datos:
-        if puntaje > datos[nombre]:
-            datos[nombre] = puntaje
-    else:
-        datos[nombre] = puntaje
-
-    # si no hay hoja
-    libro.remove(hoja)
-    hoja = libro.create_sheet(title="Sheet")
-    hoja.append(["Nombre", "Puntaje"])
-    for nombreGuardado, puntajeGuardado in datos.items():
-        hoja.append([nombreGuardado, puntajeGuardado])
-
-    libro.save(archivo)
-    print(f"Puntaje guardado: {nombre} - {puntaje}")
-
-def mostrarTop3(archivo="puntajes.xlsx"):
-    if not os.path.exists(archivo):
-        print("Archivo no encontrado.")
-        return
-
-    libro = load_workbook(archivo)
-    hoja = libro.active
-
-    datos = []
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
-        nombre, puntaje = fila
-        datos.append((nombre, puntaje))
-
-    datosOrdenados = quicksort(datos)
-    top3 = datosOrdenados[:3]
-
-    mensaje = "Top 3 Puntajes:\n"
-    for i, (nombre, puntaje) in enumerate(top3, start=1):
-        mensaje += f"{i}. {nombre} - {puntaje}\n"
-
-    ventana = tk.Tk()
-    ventana.withdraw()
-    messagebox.showinfo("Mejores Puntajes", mensaje)
-    ventana.destroy()
 
 #Variable para el menu:
 menu_frame = tk.Frame(myApp,bg="black")
