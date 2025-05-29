@@ -61,13 +61,17 @@ bombs = 40
 shields = 5
 radars = 3
 powerUps = 2
+powerMultiplier = 1
 
 remainingShields = 0
 usedShields = 0
 
+FinalScore = 0
+
 remainingBombs = bombs
 remainingFlags = bombs
 currentFlags = 0
+
 
 map = []
 mapGenerated = False
@@ -273,6 +277,8 @@ def addGameObject(gameMap: list, x_avoid :int, y_avoid : int, nProperty: int, pr
                     if random.randint(0,100)<5 and nProperty > 0:
                         gameMap[i][j] = specialButtons[propertyName]
                         nProperty -= 1
+                        if propertyName == "powerUp":
+                            gameMap[i][j] = specialButtons[propertyName] + random.randint(15,50)
 
 # Initialize the map with 0s and place all objects randomly
 def initializeMap(gameMap: list, x_0 : int, y_0:int, nBombs: int, nShields: int, nRadars:int, nPowerUps: int):
@@ -324,13 +330,19 @@ def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
 
 def lose(lost: bool = True):
     global finalTime
+    global casillasCubiertas
+    global totalCasillas
     finalTime = time.time() - startTime
-    print(finalTime)
+    #print(finalTime)
+    FinalScore = (10/round(finalTime, 2)) * powerMultiplier * ((casillasCubiertas + currentFlags) / totalCasillas)
+    FinalScore = round(FinalScore , 2) *10000
+    print(f"Final Score: {FinalScore}")  # Debugging line to check the final score
 
     gameFrame.pack_forget()
     for widget in loseFrame.winfo_children():
         widget.destroy()
     loseFrame.pack()
+    
     
 
     # Crea el label de "You Lose" aquí
@@ -388,6 +400,12 @@ def lose(lost: bool = True):
     lose_exit_Frame.pack(pady=20)
 
 
+def powerUpEffect(gameMap: list, x: int, y: int, buttons: list):
+    global powerMultiplier
+    buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
+    powerMultiplier = powerMultiplier * ((gameMap[y][x] - specialButtons["powerUp"])/100)
+    print(f"Power multiplier: {powerMultiplier}")  # Debugging line to check the multiplier value
+
 # Defines behavior for left click on a button
 def buttonClick(gameMap: list, name : str,buttonSet : list):
     global mapGenerated
@@ -397,6 +415,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     global totalCasillas
     global casillasCubiertas
     global currentFlags
+    global remainingBombs
 
     casillasCubiertas +=1
 
@@ -421,14 +440,14 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
             remainingShields-=1
             usedShields +=1
         buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
-        remaingBombs -= 1
+        remainingBombs -= 1
         
     elif gameMap[buttonHeight][buttonWidth] == 100:
         shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
         
     elif gameMap[buttonHeight][buttonWidth] == 200:
         radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
-    elif gameMap[buttonHeight][buttonWidth] == 300: 
+    elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
         buttonSet[buttonHeight][buttonWidth]["text"] = "POWER UP"
     else:
         buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
