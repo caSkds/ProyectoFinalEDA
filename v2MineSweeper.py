@@ -387,6 +387,7 @@ def lose():
 def buttonClick(gameMap: list, name : str,buttonSet : list):
     global mapGenerated
     global remainingShields
+    global remainingFlags
 
     buttonHeight =int(name[:name.index('F')])
     buttonWidth = int(name[name.index('e')+1:])
@@ -394,14 +395,20 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
         initializeMap(gameMap, buttonWidth, buttonHeight, bombs, shields, radars, powerUps)
         printMap(gameMap)
 
+    if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
+        remainingFlags += 1
 
     if gameMap[buttonHeight][buttonWidth] == 500:
+        if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
+            remainingFlags -= 1
         if remainingShields == 0:
             mostrarMinijuego()
         else:
             remainingShields-=1
             usedShields +=1
-            buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
+        buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
+            
+        
     elif gameMap[buttonHeight][buttonWidth] == 100:
         shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
         
@@ -418,7 +425,7 @@ def flag( event ):
     if event.widget["text"] == "🚩":
         remainingFlags +=1
         event.widget.config(text="")
-    else:
+    elif event.widget["text"] == "":
         remainingFlags -= 1
         event.widget.config(text="🚩")
 
