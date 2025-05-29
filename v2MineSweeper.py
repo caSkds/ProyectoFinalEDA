@@ -306,11 +306,11 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                 else:
                     buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
 
-def shieldEffect( x: int, y: int, buttons: list):
+def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     # Adds a shield to the game
     global remainingShields
     remainingShields += 1
-    buttons[y][x]["text"] = "SHIELD"
+    buttons[y][x]["text"] = str(['🛡️', getNeighborBombs(gameMap,x,y)])
 
 def lose():
     global finalTime
@@ -392,9 +392,9 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
             mostrarMinijuego()
         else:
             remainingShields-=1
-            buttonSet[buttonHeight][buttonWidth]["text"] = "SHIELD activated"
+            buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
     elif gameMap[buttonHeight][buttonWidth] == 100:
-        shieldEffect( buttonWidth, buttonHeight, buttonSet)
+        shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
         
     elif gameMap[buttonHeight][buttonWidth] == 200:
         radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
