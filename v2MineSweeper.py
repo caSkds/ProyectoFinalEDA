@@ -434,7 +434,8 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
         remainingFlags += 1
 
-    if gameMap[buttonHeight][buttonWidth] == 500:
+    if gameMap[buttonHeight][buttonWidth] == 500 and buttonSet[buttonHeight][buttonWidth]["text"] != str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)]):
+        
         if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
             remainingFlags -= 1
         if remainingShields == 0:
