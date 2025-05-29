@@ -63,6 +63,9 @@ radars = 3
 powerUps = 2
 
 remainingShields = 0
+usedShields = 0
+
+remainingFlags = bombs
 
 map = []
 mapGenerated = False
@@ -78,6 +81,11 @@ specialButtons = {
 height  = 15
 # Ancho del juego
 width = 15
+
+totalCasillas = height * width
+casillasCubiertas = 0 # Contador de casillas abiertas
+
+# Configuración de la ventana principal
 myApp.title("Mine Sweeper")
 
 # Create a height x width grid for the matrix representation of the game 
@@ -392,6 +400,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
             mostrarMinijuego()
         else:
             remainingShields-=1
+            usedShields +=1
             buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
     elif gameMap[buttonHeight][buttonWidth] == 100:
         shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
@@ -405,7 +414,13 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 
 # Defines flagging a button
 def flag( event ):
-    event.widget.config(text="🚩")
+    global remainingFlags
+    if event.widget["text"] == "🚩":
+        remainingFlags +=1
+        event.widget.config(text="")
+    else:
+        remainingFlags -= 1
+        event.widget.config(text="🚩")
 
 
 if sys.platform == "darwin":
