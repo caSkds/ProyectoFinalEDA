@@ -65,7 +65,9 @@ powerUps = 2
 remainingShields = 0
 usedShields = 0
 
+remainingBombs = bombs
 remainingFlags = bombs
+currentFlags = 0
 
 map = []
 mapGenerated = False
@@ -320,7 +322,7 @@ def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     remainingShields += 1
     buttons[y][x]["text"] = str(['🛡️', getNeighborBombs(gameMap,x,y)])
 
-def lose():
+def lose(lost: bool = True):
     global finalTime
     finalTime = time.time() - startTime
     print(finalTime)
@@ -329,6 +331,7 @@ def lose():
     for widget in loseFrame.winfo_children():
         widget.destroy()
     loseFrame.pack()
+    
 
     # Crea el label de "You Lose" aquí
     loseLabel = tk.Label(loseFrame, 
@@ -340,6 +343,8 @@ def lose():
                          font=("arial",50),
                          padx=5,
                          pady=5)
+    if not lost:
+        loseLabel.config(text="You Win")
     losetime = tk.Label(loseFrame,
                         font = ("ariel",20),
                         text ="Tiempo:\t" + str(round(finalTime,2)),
@@ -388,6 +393,15 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     global mapGenerated
     global remainingShields
     global remainingFlags
+    global remainingBombs
+    global totalCasillas
+    global casillasCubiertas
+    global currentFlags
+
+    casillasCubiertas +=1
+
+    if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
+        lose(False)
 
     buttonHeight =int(name[:name.index('F')])
     buttonWidth = int(name[name.index('e')+1:])
@@ -407,7 +421,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
             remainingShields-=1
             usedShields +=1
         buttonSet[buttonHeight][buttonWidth]["text"] = str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)])
-            
+        remaingBombs -= 1
         
     elif gameMap[buttonHeight][buttonWidth] == 100:
         shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
@@ -422,8 +436,10 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 # Defines flagging a button
 def flag( event ):
     global remainingFlags
+    global currentFlags
     if event.widget["text"] == "🚩":
         remainingFlags +=1
+        currentFlags +=1
         event.widget.config(text="")
     elif event.widget["text"] == "":
         remainingFlags -= 1
