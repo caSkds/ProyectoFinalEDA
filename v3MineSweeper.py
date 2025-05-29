@@ -335,7 +335,7 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
 def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     # Adds a shield to the game
     global remainingShields
-    if buttons[y][x]["text"] == "🚩" or buttons[y][x] == "":
+    if buttons[y][x]["text"] == "🚩" or buttons[y][x]["text"] == "":
         remainingShields += 1
         buttons[y][x]["text"] = str(['🛡️', getNeighborBombs(gameMap,x,y)])
 
