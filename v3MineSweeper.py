@@ -126,7 +126,7 @@ def menu(): #Funcion para el menu principal
     score_frame.pack()
     score_button.pack()
     
-    score_button.config(command = mostrarTop10)
+    score_button.config(command = mostrarTop10) #boton de puntuación muestra en una ventana el top 10 puntajes
 
     
     exit_frame.pack(pady=10)
