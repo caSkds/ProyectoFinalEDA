@@ -402,9 +402,11 @@ def lose(lost: bool = True):
 
 def powerUpEffect(gameMap: list, x: int, y: int, buttons: list):
     global powerMultiplier
-    buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
-    powerMultiplier = powerMultiplier * ((gameMap[y][x] - specialButtons["powerUp"])/100)
-    print(f"Power multiplier: {powerMultiplier}")  # Debugging line to check the multiplier value
+    if buttons[y][x]["text"] == "" or buttons[y][x]["text"] == "🚩":
+        buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
+        buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
+        powerMultiplier = powerMultiplier * ((gameMap[y][x] - specialButtons["powerUp"])/100)
+        print(f"Power multiplier: {powerMultiplier}")  # Debugging line to check the multiplier value
 
 # Defines behavior for left click on a button
 def buttonClick(gameMap: list, name : str,buttonSet : list):
@@ -448,7 +450,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     elif gameMap[buttonHeight][buttonWidth] == 200:
         radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
     elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
-        buttonSet[buttonHeight][buttonWidth]["text"] = "POWER UP"
+        powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
     else:
         buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
 
