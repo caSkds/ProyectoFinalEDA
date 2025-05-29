@@ -402,7 +402,11 @@ def flag( event ):
     event.widget.config(text="🚩")
 
 
-
+if sys.platform == "darwin":
+    for i in range(height):
+        gameFrame.rowconfigure(i, weight=1)
+    for i in range(width):
+        gameFrame.columnconfigure(i, weight=1)
 
 # Create buttons for the grid
 for i in range(0,height):

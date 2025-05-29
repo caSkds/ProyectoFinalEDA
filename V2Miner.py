@@ -403,9 +403,6 @@ def flag( event ):
 
 
 
-for i in range(10):
-    gameFrame.columnconfigure(i, weight=1)
-    gameFrame.rowconfigure(i, weight=1)
 
 
 # Create buttons for the grid
