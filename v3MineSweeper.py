@@ -15,7 +15,7 @@ secuencia = []#Donde se va a guardar el minigame
 flechas = {1: "↑", 2: "↓", 3: "←", 4: "→"}#El diccionario para la secuencia
 temporizadorPaTodos = None#Es como un ID para el temporizador en caso de que vuelva a caer; se reinicie
 tiempo_inicio = None#Para que se vaya actualizando el tiempo conforme pase el tiempo
-
+minaActual=None#Guarda la posicion de la mina presionada
 #Las variables de mi tio
 myApp = tk.Tk()
 myApp.config(bg="black") #Color base de la ventana
@@ -202,6 +202,12 @@ def volverAlJuego():
     info.config(text="") 
     etiqueta_tiempo.config(text="")
     gameFrame.pack() #Se vuelve al buscaminas
+    global mina_actual
+    if mina_actual is not None:
+        h, w = mina_actual
+        map[h][w] = -1
+        buttons[h][w]["text"] = "OFF"
+        mina_actual = None
 
 def irADerrota():
     minijuegoFrame.pack_forget() #Se oculta el minijuego
@@ -480,6 +486,9 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     if not mapGenerated:
         initializeMap(gameMap, buttonWidth, buttonHeight, bombs, shields, radars, powerUps)
         printMap(gameMap)
+    
+    if gameMap[buttonHeight][buttonWidth] == -1:
+        return
 
     if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
         remainingFlags += 1
@@ -489,6 +498,8 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
         if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
             remainingFlags -= 1
         if remainingShields == 0:
+            global mina_actual
+            mina_actual = (buttonHeight, buttonWidth)
             mostrarMinijuego()
         else:
             remainingShields-=1
