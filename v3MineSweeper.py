@@ -351,7 +351,7 @@ def lose(lost: bool = True):
     global totalCasillas
     #print(finalTime)
     finalTime = time.time() - startTime
-    FinalScore = (10 / round(finalTime, 2)) * powerMultiplier * ((casillasCubiertas + currentFlags) / totalCasillas)
+    FinalScore = (finalTime*-0.001 + 100)* powerMultiplier * ((casillasCubiertas + currentFlags) / totalCasillas)
     FinalScore = round(FinalScore, 2) * 10000
     print(f"Final Score: {FinalScore}") # Debugging line to check the final score
 
