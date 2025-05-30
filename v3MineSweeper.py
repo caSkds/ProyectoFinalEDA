@@ -330,14 +330,24 @@ def getNeighborBombs(gameMap: list, x : int, y : int) -> int:
 
 def radarEffect(gameMap: list, x: int, y: int, buttons: list): 
     # This function will reveal all the cells in a 3x3 area around the radar
+    global casillasCubiertas
+    unclickedText = ["🚩", ""]  # Text for unclicked cells
     for i in range(-1, 2):
         for j in range(-1, 2):
             if 0 <= x + i < width and 0 <= y + j < height:
+                
+                if i!= 0 or j!=0 :
+                    if buttons[y + j][x + i]["text"]  in unclickedText:
+                        casillasCubiertas +=1
+                        print(f"Casillas cubiertas added at {x+i}, {y+j}: {casillasCubiertas}")
                 if gameMap[y + j][x + i] == 0:
                     buttons[y + j][x + i]["text"] = getNeighborBombs(gameMap, x + i, y + j)
+                    
                 else:
                     buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
-
+                if gameMap[y + j][x + i] == 500:
+                    buttons[y + j][x + i]["text"] = str(['💥', getNeighborBombs(gameMap, x+i , y+j)])
+                    
 def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     # Adds a shield to the game
     global remainingShields
