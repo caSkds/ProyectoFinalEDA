@@ -395,9 +395,9 @@ def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     global remainingShields
     if buttons[y][x]["text"] == "🚩" or buttons[y][x]["text"] == "":
         remainingShields += 1
-        #shieldLabel.config(text="🛡️" + str(remainingShields))
-        shieldLabel.config(text="🛡️")
-        buttons[y][x]["text"] = str('\t🛡️\n'+ str(getNeighborBombs(gameMap,x,y)))
+        shieldLabel.config(text="🛡️" + str(remainingShields))
+        #buttons[y][x]["text"] = str('\t🛡️\n'+ str(getNeighborBombs(gameMap,x,y)))
+        buttons[y][x]["text"] = "🛡️"
 
 def lose(lost: bool = True):
     global finalTime
