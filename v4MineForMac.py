@@ -562,8 +562,8 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     
 
     usedShields=0
-
-    casillasCubiertas +=1
+    if buttons[buttonHeight][buttonWidth]["text"] in unclickedText and gameMap[buttonHeight][buttonWidth] != 500:
+        casillasCubiertas +=1
     print(f"Clicked squares: {casillasCubiertas}, flags: {currentFlags}, total: {totalCasillas}")
     if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
         lose(False)
@@ -588,12 +588,15 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
             global mina_actual
             mina_actual = (buttonHeight, buttonWidth)
             mostrarMinijuego()
+            
+            
         else:
             remainingShields-=1
             shieldLabel.config(text="🛡️"+str(remainingShields))
             usedShields +=1
         buttonSet[buttonHeight][buttonWidth]["text"] = str('💣')
         remainingBombs -= 1
+        casillasCubiertas +=1
         
     elif gameMap[buttonHeight][buttonWidth] == 100:
         shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
@@ -605,6 +608,8 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
         powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
     else:
         buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
+    if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
+        lose(False)
 
 # Defines flagging a button
 def flag( event ):
@@ -856,8 +861,5 @@ myApp.mainloop()
 - Changed first two lines of function jugar()
 - Changed createButtons() fg color, PLEASE REVERSE THIS CHANGE
 - Change size for testing as well as number of objects, REVERSE TO YOUR LIKING
-- changed flag function
-- changed radar function
-- changed click function
 
 """
