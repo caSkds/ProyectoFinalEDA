@@ -662,4 +662,170 @@ def lose(lost: bool = True):
 
 ```
 ## Pantalla final
+Al determinar si se pierde o se gana, se muestra la pantalla final, esta se compone de widgets creados de forma similar al menu
+```python
+loseFrame.pack()
+    # Crea el label de "You Lose" aquí
+    loseLabel = tk.Label(loseFrame,
+                         text="You Lose",
+                         bg="black",
+                         highlightbackground="purple",
+                         highlightthickness=2,
+                         fg="purple",
+                         font=("arial", 50),
+                         padx=5,
+                         pady=5)
+    if not lost:
+        loseLabel.config(text="You Win")
 
+    losetime = tk.Label(loseFrame,
+                        font=("arial", 20),
+                        text="Tiempo:\t" + str(round(finalTime, 2)),
+                        bg="black",
+                        fg="white")
+
+    loseScore = tk.Label(loseFrame,
+                         font=("arial", 20),
+                         text="Puntuacion:\t" + str(round(FinalScore, 2)),
+                         bg="black",
+                         fg="white")
+
+    lose_rePlay_Frame = tk.Frame(loseFrame,
+                                highlightbackground="green yellow",
+                                highlightthickness=1,
+                                bg="black")
+    lose_rePlay_Button = tk.Button(lose_rePlay_Frame,
+                                  text="Reintentarlo",
+                                  fg="green yellow",
+                                  bg="black",
+                                  font=("arial", 20),
+                                  command=rePlay,
+                                  border=0)
+    lose_Menu_Frame = tk.Frame(loseFrame,
+                             highlightbackground="green yellow",
+                             highlightthickness=1,
+                             bg="black")
+    lose_Menu_Button = tk.Button(lose_Menu_Frame,
+                                text="Menu",
+                                fg="green yellow",
+                                bg="black",
+                                font=("arial", 20),
+                                command=lose_menu,
+                                border=0,
+                                activebackground="green yellow")
+    lose_exit_Frame = tk.Frame(loseFrame,
+                             highlightbackground="magenta2",
+                             highlightthickness=1,
+                             bg="black")
+    lose_exit_Button = tk.Button(lose_exit_Frame,
+                                text="Salir",
+                                fg="magenta2",
+                                bg="black",
+                                font=("arial", 20),
+                                command=salir,
+                                border=0,
+                                activebackground="magenta2")
+    formFrame = tk.Frame(loseFrame, bg="black")
+    nombreLabel = tk.Label(formFrame,
+                           text="Nombre:",
+                           bg="black",
+                           fg="white",
+                           font=("arial", 14))
+    nombreEntry = tk.Entry(formFrame,
+                           font=("arial", 14),
+                           bg="gray20",
+                           fg="white",
+                           insertbackground="white",
+                           relief="flat",
+                           width=15)
+    guardarBtn = tk.Button(formFrame,
+                          text="Guardar",
+                          command=guardar,
+                          font=("arial", 14),
+                          bg="green yellow",
+                          fg="black",
+                          activebackground="yellow",
+                          activeforeground="black",
+                          relief="flat",
+                          padx=8,
+                          pady=3)
+```
+y estos se empaquetan en el orden correcto:
+```python
+    loseLabel.pack(pady=50)
+    losetime.pack()
+    loseScore.pack(pady=20)
+    lose_rePlay_Button.pack()
+    lose_rePlay_Frame.pack(pady=40)
+    lose_Menu_Button.pack()
+    lose_Menu_Frame.pack(pady=5)
+    lose_exit_Button.pack()
+    lose_exit_Frame.pack(pady=20)
+    formFrame.pack(pady=15)
+```
+En la pantalla final se proponen 3 botones ademas del Entry para guardar el puntaje asociado con un nombre, el primero boton permite reintentar el juego desde 0, para ello es necesario volver a crear los botones y reiniciar todas las variables globales del mapa, esto se realiza en la funcion rePlay()
+```python
+def rePlay():
+    global map, buttons, mapGenerated, remainingShields, startTime, casillasCubiertas, currentFlags, remainingBombs, remainingFlags
+    # Oculta el frame de derrota y muestra el del juego
+    startTime = time.time()
+    loseFrame.pack_forget()
+    infoFrame.pack()
+    gameFrame.pack()
+    # Limpiar el frame del juego
+    for widget in gameFrame.winfo_children():
+        widget.destroy()
+    # Reiniciar variables
+    map = []
+    buttons = []
+    mapGenerated = False
+    remainingShields = 0
+    casillasCubiertas = 0
+    currentFlags = 0
+    remainingBombs = bombs
+    remainingFlags = bombs
+    # Volver a crear la matriz y los botones
+    for i in range(height):
+        newList = []
+        for j in range(width):
+            newList.append(0)
+        map.append(newList)
+    for i in range(height):
+        otherNewList = []
+        for j in range(width):
+            otherNewList.append(0)
+        buttons.append(otherNewList)
+    for i in range(height):
+        for j in range(width):
+            currentName = str(i)+str(False)+str(j)
+            cell_frame = tk.Frame(gameFrame,
+                                  highlightbackground="purple",
+                                  highlightthickness=1,
+                                  bg="black",
+                                  width=40,
+                                  height=40)
+            cell_frame.grid(row=i, column=j)
+            
+            button  = tk.Button(cell_frame,
+                    name = str(i)  +str(j),
+                    bg="black",
+                    
+                    border=0,
+                    fg="white",
+                    width=4,
+                    height=2,
+                    activebackground="green yellow",
+                    command =  lambda buttonName = currentName: buttonClick(map,buttonName,buttons))
+            button.pack()
+            if sys.platform == "darwin":
+                button.bind("<Button-2>", flag)
+            else:
+                button.bind("<Button-3>", flag)
+            buttons[i][j] = button
+```
+ El boton Salir funciona gracias a la funcion salir()
+ ```python
+def salir():
+    myApp.destroy()
+```
+Para guardar la puntuacion se llama a la funcion guardaarpuntaje.
