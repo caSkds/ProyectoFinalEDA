@@ -155,6 +155,7 @@ def jugar(): #comando para el boton jugar del menu
     menu_frame.pack_forget()
     infoFrame.pack()
     gameFrame.pack()
+    createButtons() #Crea los botones del buscaminas
     actualizarTiempo()
 
 def menu(): #Funcion para el menu principal
@@ -615,45 +616,48 @@ if sys.platform == "darwin":
         gameFrame.columnconfigure(i, weight=1)
 
 # Create buttons for the grid
-for i in range(0,height):
-    for j in range(0,width):
-        currentName = str(i)+str(False)+str(j)
-        cell_frame = tk.Frame(gameFrame,
-                              highlightbackground="purple",
-                              highlightthickness=1,
-                              bg="black",
-                              width=40,
-                              height=40)
-        button  =tk.Button(cell_frame,
-                name = str(i)  +str(j),
-                bg="black",
-                
-                border=0,
-                fg="white",
-                width=4,
-                height=2,
-                activebackground="green yellow",
-                command =  lambda buttonName = currentName: buttonClick(map,buttonName,buttons))
-        #print(str(i)+str(j))
-        cell_frame.grid(
-            row = i,
-            column = j
-        )
-        
-        '''
-        button.grid(
-            row = i,
-            column = j
-        )
-        '''
-        button.pack()
-        #checks os for right click
-        if sys.platform == "darwin":
-            button.bind("<Button-2>", flag)
-        else:
-            button.bind("<Button-3>", flag)
-        #print(type(map[i][j]))
-        buttons[i][j] = button
+def createButtons():
+    global buttons
+    global map
+    for i in range(0,height):
+        for j in range(0,width):
+            currentName = str(i)+str(False)+str(j)
+            cell_frame = tk.Frame(gameFrame,
+                                highlightbackground="purple",
+                                highlightthickness=1,
+                                bg="black",
+                                width=40,
+                                height=40)
+            button  =tk.Button(cell_frame,
+                    name = str(i)  +str(j),
+                    bg="black",
+                    
+                    border=0,
+                    fg="white",
+                    width=4,
+                    height=2,
+                    activebackground="green yellow",
+                    command =  lambda buttonName = currentName: buttonClick(map,buttonName,buttons))
+            #print(str(i)+str(j))
+            cell_frame.grid(
+                row = i,
+                column = j
+            )
+            
+            '''
+            button.grid(
+                row = i,
+                column = j
+            )
+            '''
+            button.pack()
+            #checks os for right click
+            if sys.platform == "darwin":
+                button.bind("<Button-2>", flag)
+            else:
+                button.bind("<Button-3>", flag)
+            #print(type(map[i][j]))
+            buttons[i][j] = button
 
 #Variable para el menu:
 menu_frame = tk.Frame(myApp,bg="black")
