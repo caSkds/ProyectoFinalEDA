@@ -398,7 +398,7 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                         elif gameMap[y + j][x + i] >300 and gameMap[y + j][x + i] < 500:
                             powerUpEffect(gameMap, x + i, y + j, buttons)
                         # if it is a bomb
-                        elif gameMap[y + j][x + i] == 500 and buttons[y + j][x + i]["text"]  in ["🚩", "💣"]:
+                        elif gameMap[y + j][x + i] == 500 :
                             buttons[y + j][x + i]["text"] = str('💣')
                     
 def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
