@@ -11,6 +11,75 @@ myApp.geometry("900x600+300+150") #tamaño establecido y ubicacion inicial
 myApp.title("Mine Sweeper")
 ```
 ## Menú
+Para el menu se usaron multiples widgets de tkinter, la declaracion y cada especificacion se definen para darle estilo "Neon" a pathfinder
+
+```python
+#Variable para el menu:
+menu_frame = tk.Frame(myApp,bg="black")
+name_label = tk.Label(menu_frame,
+                          bg="black",
+                          text="Pathfinder",
+                          fg="white",
+                          font=("arial",20),
+                          anchor='center',
+                          highlightbackground="purple",
+                          highlightthickness=3,
+                          pady=5)
+play_frame = tk.Frame(menu_frame,
+                          highlightbackground="green yellow",
+                          highlightthickness=1)
+play_button = tk.Button(play_frame,
+                            width="15",
+                            text="Iniciar juego",
+                            bg="black",
+                            fg="white",
+                            font=("arial",15),
+                            pady=5,
+                            border=0,
+                            activebackground="green yellow",
+                            command=jugar)
+score_frame = tk.Frame(menu_frame,
+                           highlightbackground="green yellow",
+                           highlightthickness=1)
+score_button = tk.Button(score_frame,
+                            width="15",
+                            text="Puntuacion",
+                            bg="black",
+                            fg="white",
+                            font=("arial",15),
+                            pady=5,
+                            border=0,
+                            activebackground="green yellow")
+exit_frame = tk.Frame(menu_frame,
+                            highlightbackground="magenta2",
+                            highlightthickness=1)
+exit_button = tk.Button(exit_frame,
+                            width="5",
+                            text="Salir",
+                            bg="black",
+                            fg="white",
+                            font=("arial",10),
+                            pady=5,
+                            command=salir,
+                            border=0,
+                            activebackground="magenta2")
+```
+Para la creacion del efecto neon y del borde colorido de cada boton se creo un Frame propio para cada uno, pues al no tener disponible un metodo directo para cambiar el color del borde de un boton, se hace visible el borde del Frame alrededor del boton
+Ademas, el juego se incia al llamar a la funcion menu(), de la cual se puede manejar el juego entero.
+
+```python
+def menu(): #Funcion para el menu principal
+    menu_frame.pack(fill="both", expand="True",)
+    name_label.pack(pady=60)
+    play_frame.pack(pady=5)
+    play_button.pack()
+    score_frame.pack()
+    score_button.pack()
+    score_button.config(command = mostrarTop10)
+    exit_frame.pack(pady=10)
+    exit_button.pack()
+```
+
 ## Buscaminas
 
 
