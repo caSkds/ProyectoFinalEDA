@@ -225,6 +225,8 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
 
 Esta función empieza incrementando en 1 una variable global que rastrea cuantas casillas han sido cubiertas
 
+- Al darle click a cada botón , se revisa que su representaión matricial no sea la de una bomba. Esto para incrementar la cantidad de casillas cubiertas en uno. Cuando es una bomba, primero se espera a que el mini juego acabe (o los escudos disminuyan) para incrementar en uno. Esto es para no ganar prematuramente. Esto se explica con más detalle en [victoria y derrota](#victoria-y-derrota)
+
 #### Banderas/Click derecho
 Las banderas son activadas con el click derecho. Durante el desarrollo se descubrió que Tkinter interpreta el click derecho de manera distinta para Windows (`<Button-3>`)como para MacOs (`<Button-2>`). Por esto en la función donde se crea cada botón se pone un condicional para aparear ya sea `<Button-2>` o `<Button-3>` a la función `flag()`
 
@@ -258,20 +260,337 @@ Hablando en términos de código, poner una bandera solo implica cambiar el text
 
 Para poder quitar una bandera está el bloque `if`, el cual revisa si el texto del botón actual es una bandera. De ser así, se cambia el texto para que sea nulo otra vez. No contemplar casos adicionales evita que una bandera pueda ser puesta sobre una casilla que fue previamente descubierta.
 
-#### Casillas ordinarias
 
+
+#### Casillas ordinarias
+Cuando se le da click izquierdo a una casilla ordinaria, la función `clickButton()` primero revisa que la casilla no haya sido ya clickeada o revelada (esto se repite para cada uno de los objetos)
+```python
+    unclickedText = ["🚩", ""]  # Text for unclicked cell   
+
+    if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
+        ...
+        """
+        Las condiciones para cada objeto se explicará en las próximas secciones
+        """
+        ...
+     else:
+        buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
+```
+- Si la casilla no corresponde a ningún objeto, se llama a la función `getNeighborBombs()`
+- Esta toma de argumento las coordenadas originales e itera en el eje x y en el eje y valores una unidad menor y una unidad mayor a la casilla actual (por ende el `range(-1,2)`). Si la iteración actual es menor a la altura o ancho del juego y encima la representación matricial es igual a 500 (el valor asignado a las bombas) se le agrega 1 a la variable `count()`, misma que se devuelve al final
+
+```python
+def getNeighborBombs(gameMap: list, x : int, y : int) -> int:
+    count = 0
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if 0 <= x + i < width and 0 <= y + j < height:
+                if gameMap[y + j][x + i] == 500:
+                    count += 1
+    return count
+```
 #### Radares 
-Los radares primero 
+Los radares, iteran de la misma manera que la función que devuelve casillas restantes. Se verifica que al menos uno de los valores de `i`y `j`sean distintos de 0. Esto para asegurar que no estemos haciendo la revisión en la misma casilla. 
+> Es importante recordar que al  presionar la casilla, el contador de cuantas casillas se han apretado ya se incrementó
+
+Se aumenta las casillas ya cubiertas por cada celda revelada. Si su representación matricial es 0, su texto revela cuantas bombas hay alrededor.
+
+- Si su representación matricial es de 100, se aplica la función `shieldEffect`tal como si se hubiera presionado para agregar automáticamente es escudo
+- Si es un radar (representación matricial de 200), solo se cambia el texto
+- Si su representación matricial es mayor a 300 y menor a 500 (powerUp), se llama a la función `powerUpEffect` tal como si hubiera sido presionado. 
+- Si es una bomba (reprecentación matricial de 500) solo se cambia el texto, para que la bomba no pueda ser habilitada de nuevo.
+
+```python 
+
+
+    unclickedText = ["🚩", ""]  # Text for unclicked cell   
+
+    if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
+        ...
+        """
+        Las condiciones para cada objeto se explicará en las próximas secciones
+        """
+        ...
+    elif gameMap[buttonHeight][buttonWidth] == 200:
+            radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+            buttons[buttonHeight][buttonWidth]["text"] = str('📡 off')
+        ...
+
+```
+
+```python
+def radarEffect(gameMap: list, x: int, y: int, buttons: list): 
+    # This function will reveal all the cells in a 3x3 area around the radar
+    global casillasCubiertas
+    global powerMultiplier
+    global remainingShields
+    unclickedText = ["🚩", ""]  # Text for unclicked cells
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            if 0 <= x + i < width and 0 <= y + j < height:
+                
+                if i!= 0 or j!=0 :
+                    
+                    if buttons[y + j][x + i]["text"]  in unclickedText:
+                        casillasCubiertas +=1
+                        print(f"Casillas cubiertas added at {x+i}, {y+j}: {casillasCubiertas}")
+                        if gameMap[y + j][x + i] == 0:
+                            buttons[y + j][x + i]["text"] = getNeighborBombs(gameMap, x + i, y + j)
+                        elif gameMap[y + j][x + i]  ==100:
+                            shieldEffect(gameMap, x + i, y + j, buttons)
+                            buttons[y + j][x + i]["text"] = str('🛡️')
+                        elif gameMap[y + j][x + i] == 200:
+                            buttons[y + j][x + i]["text"] = str('📡')
+                        elif gameMap[y + j][x + i] >300 and gameMap[y + j][x + i] < 500:
+                            powerUpEffect(gameMap, x + i, y + j, buttons)
+                        # if it is a bomb
+                        elif gameMap[y + j][x + i] == 500 and buttons[y + j][x + i]["text"]  in ["🚩", "💣"]:
+                            buttons[y + j][x + i]["text"] = str('💣')
+
+```
 
 
 #### Bombas
+Si se le da click a un botón vacío, la función `buttonClick` revisa si la cantidad de escudos restantes (`remainingShields`) es mayor a 0. Si no es así, se ejecuta la función `mostrarMinijuego()`. De lo contrario, solo se resta uno a los escudos restantes y se cambia el texto.
+
+- Al final de esto se incrementan las casillas. Esto es para evitar ganar prematuramente.
+```python
+
+
+if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
+        
+        if gameMap[buttonHeight][buttonWidth] == 500:
+            
+            if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
+                remainingFlags -= 1
+            if remainingShields == 0:
+                global mina_actual
+                mina_actual = (buttonHeight, buttonWidth)
+                mostrarMinijuego()
+                
+                
+            else:
+                remainingShields-=1
+                shieldLabel.config(text="🛡️"+str(remainingShields))
+                usedShields +=1
+            buttonSet[buttonHeight][buttonWidth]["text"] = str('💣')
+            remainingBombs -= 1
+            casillasCubiertas +=1
+            
+        """
+        Las condiciones para cada objeto se explicará en las próximas secciones
+        """
+        ...
+
+```
 
 #### Escudos
+- Cuando la representación de un botón es un escudo, solo se llama a la función `shieldEffect()` Esta verifica que el bloque no haya sido clickeado, de ser así incrementa la variable `remainingShields()`en uno y actualiza el texto a mostrar en la parte superior del juego, donde se muestran los escudos restantes.
+
+```python
+def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
+    # Adds a shield to the game
+    global remainingShields
+    if buttons[y][x]["text"] == "🚩" or buttons[y][x]["text"] == "":
+        remainingShields += 1
+        shieldLabel.config(text="🛡️" + str(remainingShields))
+        #buttons[y][x]["text"] = str('\t🛡️\n'+ str(getNeighborBombs(gameMap,x,y)))
+        buttons[y][x]["text"] = "🛡️"
+```
+
+```python 
+
+    unclickedText = ["🚩", ""]  # Text for unclicked cell   
+
+    if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
+        ...
+        """
+        Las condiciones para cada objeto se explicará en las próximas secciones
+        """
+        ...
+    elif gameMap[buttonHeight][buttonWidth] == 100:
+            shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+        ...
+
+
+```
+
 
 #### Power Ups
+- Es importante considerar que hay una función llamada `powerMultiplier`la cual acumula los potenciadores y al final se multiplica por la puntuación obtenida. 
+
+Para este efecto, se llama a la función `powerUpEffect()` la cual  actualiza la variable `powerMultiplier` multiplicándolo por 1 + la representación matricial del poder menos 300 (por que 300 es el valor que diferencia a los poderes) dividido sobre 100
+
+```python
+def powerUpEffect(gameMap: list, x: int, y: int, buttons: list):
+    global powerMultiplier
+    if buttons[y][x]["text"] == "" or buttons[y][x]["text"] == "🚩":
+        #buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
+        #buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
+        buttons[y][x]["text"] = str('⚡')
+        buttons[y][x]["text"] = str('⚡')
+        powerMultiplier = powerMultiplier * (1+((gameMap[y][x] - specialButtons["powerUp"])/100))
+        print(f"Power multiplier: {powerMultiplier}")  # Debugging line to check the multiplier value
+```
+
+```python 
+
+    unclickedText = ["🚩", ""]  # Text for unclicked cell   
+
+    if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
+        ...
+        """
+        Las condiciones para cada objeto se explicará en las próximas secciones
+        """
+        ...
+    elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
+            powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+        ...
 
 
-
+```
+#### Mini Juego
 ### Victoria y derrota
+- En caso de no desactivar una bomba a tiempo, se llama a la función `lose()`la cual  muestra la pantalla de pérdida
+- Tras darle click a un botón se toma la suma de casillas clickeadas y banderas actuales. Si esta suma es igual al total de casillas en el tablero, se llama  a la misma función con un parámetro establecido en falso. Esto se verifica antes y después de darle click a un botón. Se calcula la puntuación obtenida de la siguiente manera:
 
+$Puntuación =   (T_{Final}\cdot-0.001 +100)\cdot powerMultiplier \cdot \frac{casillasCubiertas + banderas}{totalCasillas}$
+
+```python
+finalTime = time.time() - startTime
+    FinalScore = (finalTime*-0.001 + 100)* powerMultiplier * ((casillasCubiertas + currentFlags) / totalCasillas)
+    FinalScore = round(FinalScore, 2) * 10000
+```
+Finalmente esto se imprime al usuario junto con un cuadro de texto para introducir nombre para la puntuación y botones para salir o volver a jugar
+
+```python
+def lose(lost: bool = True):
+    global finalTime
+    global casillasCubiertas
+    global totalCasillas
+    #print(finalTime)
+    finalTime = time.time() - startTime
+    FinalScore = (finalTime*-0.001 + 100)* powerMultiplier * ((casillasCubiertas + currentFlags) / totalCasillas)
+    FinalScore = round(FinalScore, 2) * 10000
+    print(f"Final Score: {FinalScore}") # Debugging line to check the final score
+
+    gameFrame.pack_forget()
+    infoFrame.pack_forget()
+
+    for widget in loseFrame.winfo_children():
+        widget.destroy()
+    loseFrame.pack()
+    # Crea el label de "You Lose" aquí
+    loseLabel = tk.Label(loseFrame,
+                         text="You Lose",
+                         bg="black",
+                         highlightbackground="purple",
+                         highlightthickness=2,
+                         fg="purple",
+                         font=("arial", 50),
+                         padx=5,
+                         pady=5)
+    if not lost:
+        loseLabel.config(text="You Win")
+
+    losetime = tk.Label(loseFrame,
+                        font=("arial", 20),
+                        text="Tiempo:\t" + str(round(finalTime, 2)),
+                        bg="black",
+                        fg="white")
+
+    loseScore = tk.Label(loseFrame,
+                         font=("arial", 20),
+                         text="Puntuacion:\t" + str(round(FinalScore, 2)),
+                         bg="black",
+                         fg="white")
+
+    lose_rePlay_Frame = tk.Frame(loseFrame,
+                                highlightbackground="green yellow",
+                                highlightthickness=1,
+                                bg="black")
+    lose_rePlay_Button = tk.Button(lose_rePlay_Frame,
+                                  text="Reintentarlo",
+                                  fg="green yellow",
+                                  bg="black",
+                                  font=("arial", 20),
+                                  command=rePlay,
+                                  border=0)
+    lose_Menu_Frame = tk.Frame(loseFrame,
+                             highlightbackground="green yellow",
+                             highlightthickness=1,
+                             bg="black")
+    lose_Menu_Button = tk.Button(lose_Menu_Frame,
+                                text="Menu",
+                                fg="green yellow",
+                                bg="black",
+                                font=("arial", 20),
+                                command=lose_menu,
+                                border=0,
+                                activebackground="green yellow")
+    lose_exit_Frame = tk.Frame(loseFrame,
+                             highlightbackground="magenta2",
+                             highlightthickness=1,
+                             bg="black")
+    lose_exit_Button = tk.Button(lose_exit_Frame,
+                                text="Salir",
+                                fg="magenta2",
+                                bg="black",
+                                font=("arial", 20),
+                                command=salir,
+                                border=0,
+                                activebackground="magenta2")
+
+    # pedir nombre y guardar puntaje
+    def guardar():
+        nombre = nombreEntry.get()
+        if nombre.strip():
+            guardarPuntaje(nombre, FinalScore)
+        else:
+            messagebox.showwarning("Aviso", "Por favor, ingresa un nombre.")
+
+    formFrame = tk.Frame(loseFrame, bg="black")
+    nombreLabel = tk.Label(formFrame,
+                           text="Nombre:",
+                           bg="black",
+                           fg="white",
+                           font=("arial", 14))
+    nombreEntry = tk.Entry(formFrame,
+                           font=("arial", 14),
+                           bg="gray20",
+                           fg="white",
+                           insertbackground="white",
+                           relief="flat",
+                           width=15)
+    guardarBtn = tk.Button(formFrame,
+                          text="Guardar",
+                          command=guardar,
+                          font=("arial", 14),
+                          bg="green yellow",
+                          fg="black",
+                          activebackground="yellow",
+                          activeforeground="black",
+                          relief="flat",
+                          padx=8,
+                          pady=3)
+
+    # Empaquetar la pedida de nombre en horizontal
+    nombreLabel.pack(side="left", padx=(0,5))
+    nombreEntry.pack(side="left", padx=(0,5))
+    guardarBtn.pack(side="left")
+
+    # Empaqueta los widgets en el orden correcto
+    loseLabel.pack(pady=50)
+    losetime.pack()
+    loseScore.pack(pady=20)
+    lose_rePlay_Button.pack()
+    lose_rePlay_Frame.pack(pady=40)
+    lose_Menu_Button.pack()
+    lose_Menu_Frame.pack(pady=5)
+    lose_exit_Button.pack()
+    lose_exit_Frame.pack(pady=20)
+    formFrame.pack(pady=15) # frame para agrupar y alinear el formulario de nombre y botón guarda
+
+```
 ## Pantalla final
+
