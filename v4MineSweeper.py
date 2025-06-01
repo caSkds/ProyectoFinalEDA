@@ -244,7 +244,7 @@ def volverAlJuego():
     global mina_actual
     if mina_actual is not None:
         h, w = mina_actual
-        map[h][w] = -1
+        map[h][w] = -500
         buttons[h][w]["text"] = "🪛"
         mina_actual = None
 
@@ -366,7 +366,7 @@ def getNeighborBombs(gameMap: list, x : int, y : int) -> int:
     for i in range(-1, 2):
         for j in range(-1, 2):
             if 0 <= x + i < width and 0 <= y + j < height:
-                if gameMap[y + j][x + i] == 500:
+                if abs(gameMap[y + j][x + i]) == 500:
                     count += 1
     return count
 
