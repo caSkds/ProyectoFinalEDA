@@ -376,6 +376,8 @@ def getNeighborBombs(gameMap: list, x : int, y : int) -> int:
 def radarEffect(gameMap: list, x: int, y: int, buttons: list): 
     # This function will reveal all the cells in a 3x3 area around the radar
     global casillasCubiertas
+    global powerMultiplier
+    global remainingShields
     unclickedText = ["🚩", ""]  # Text for unclicked cells
     for i in range(-1, 2):
         for j in range(-1, 2):
@@ -389,13 +391,14 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
                         if gameMap[y + j][x + i] == 0:
                             buttons[y + j][x + i]["text"] = getNeighborBombs(gameMap, x + i, y + j)
                         elif gameMap[y + j][x + i]  ==100:
+                            shieldEffect(gameMap, x + i, y + j, buttons)
                             buttons[y + j][x + i]["text"] = str('🛡️')
                         elif gameMap[y + j][x + i] == 200:
                             buttons[y + j][x + i]["text"] = str('📡')
                         elif gameMap[y + j][x + i] >300 and gameMap[y + j][x + i] < 500:
-                            buttons[y + j][x + i]["text"] = str('⚡')
+                            powerUpEffect(gameMap, x + i, y + j, buttons)
                         # if it is a bomb
-                        elif gameMap[y + j][x + i] == 500:
+                        elif gameMap[y + j][x + i] == 500 and buttons[y + j][x + i]["text"]  in ["🚩", "💣"]:
                             buttons[y + j][x + i]["text"] = str('💣')
                     
 def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
@@ -562,14 +565,18 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     
 
     usedShields=0
+    buttonHeight =int(name[:name.index('F')])
+    buttonWidth = int(name[name.index('e')+1:])
+
     if buttons[buttonHeight][buttonWidth]["text"] in unclickedText and gameMap[buttonHeight][buttonWidth] != 500:
         casillasCubiertas +=1
+
     print(f"Clicked squares: {casillasCubiertas}, flags: {currentFlags}, total: {totalCasillas}")
     if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
         lose(False)
 
-    buttonHeight =int(name[:name.index('F')])
-    buttonWidth = int(name[name.index('e')+1:])
+    
+
     if not mapGenerated:
         initializeMap(gameMap, buttonWidth, buttonHeight, bombs, shields, radars, powerUps)
         printMap(gameMap)
@@ -580,34 +587,36 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
         remainingFlags += 1
 
-    if gameMap[buttonHeight][buttonWidth] == 500 and buttonSet[buttonHeight][buttonWidth]["text"] not in unclickedText:
+    if buttonSet[buttonHeight][buttonWidth]["text"]  in unclickedText:
         
-        if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
-            remainingFlags -= 1
-        if remainingShields == 0:
-            global mina_actual
-            mina_actual = (buttonHeight, buttonWidth)
-            mostrarMinijuego()
+        if gameMap[buttonHeight][buttonWidth] == 500:
             
+            if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
+                remainingFlags -= 1
+            if remainingShields == 0:
+                global mina_actual
+                mina_actual = (buttonHeight, buttonWidth)
+                mostrarMinijuego()
+                
+                
+            else:
+                remainingShields-=1
+                shieldLabel.config(text="🛡️"+str(remainingShields))
+                usedShields +=1
+            buttonSet[buttonHeight][buttonWidth]["text"] = str('💣')
+            remainingBombs -= 1
+            casillasCubiertas +=1
             
+        elif gameMap[buttonHeight][buttonWidth] == 100:
+            shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+            
+        elif gameMap[buttonHeight][buttonWidth] == 200:
+            radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+            buttons[buttonHeight][buttonWidth]["text"] = str('📡 off')
+        elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
+            powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
         else:
-            remainingShields-=1
-            shieldLabel.config(text="🛡️"+str(remainingShields))
-            usedShields +=1
-        buttonSet[buttonHeight][buttonWidth]["text"] = str('💣')
-        remainingBombs -= 1
-        casillasCubiertas +=1
-        
-    elif gameMap[buttonHeight][buttonWidth] == 100:
-        shieldEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
-        
-    elif gameMap[buttonHeight][buttonWidth] == 200:
-        radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
-        buttons[buttonHeight][buttonWidth]["text"] = str('📡 off')
-    elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
-        powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
-    else:
-        buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
+            buttonSet[buttonHeight][buttonWidth]["text"] =getNeighborBombs(gameMap,buttonWidth, buttonHeight)
     if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
         lose(False)
 
@@ -861,5 +870,7 @@ myApp.mainloop()
 - Changed first two lines of function jugar()
 - Changed createButtons() fg color, PLEASE REVERSE THIS CHANGE
 - Change size for testing as well as number of objects, REVERSE TO YOUR LIKING
+- Changed radarEffect 
+
 
 """
