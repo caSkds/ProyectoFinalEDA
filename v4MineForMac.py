@@ -548,7 +548,7 @@ def powerUpEffect(gameMap: list, x: int, y: int, buttons: list):
         #buttons[y][x]["text"] = str(['⚡', getNeighborBombs(gameMap,x,y)])
         buttons[y][x]["text"] = str('⚡')
         buttons[y][x]["text"] = str('⚡')
-        powerMultiplier = powerMultiplier * ((gameMap[y][x] - specialButtons["powerUp"])/100)
+        powerMultiplier = powerMultiplier * (1+((gameMap[y][x] - specialButtons["powerUp"])/100))
         print(f"Power multiplier: {powerMultiplier}")  # Debugging line to check the multiplier value
 
 # Defines behavior for left click on a button
