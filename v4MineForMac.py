@@ -93,9 +93,9 @@ etiqueta_tiempo = tk.Label(minijuegoFrame)
 
 
 #Número de poderes en el tablero
-bombs = 40
-shields = 5
-radars = 3
+bombs = 2
+shields = 1
+radars = 2
 powerUps = 2
 powerMultiplier = 1
 
@@ -120,9 +120,9 @@ specialButtons = {
 }
 
 # Altura del juego
-height  = 15
+height  = 4
 # Ancho del juego
-width = 15
+width = 4
 
 totalCasillas = height * width
 casillasCubiertas = 0 # Contador de casillas abiertas
@@ -152,6 +152,8 @@ def actualizarTiempo(): #Actualizar el tiempo para la pantalla del juego
 
 
 def jugar(): #comando para el boton jugar del menu
+    global startTime
+    startTime = time.time() #El tiempo de inicio inicia en 0
     menu_frame.pack_forget()
     infoFrame.pack()
     gameFrame.pack()
@@ -380,16 +382,21 @@ def radarEffect(gameMap: list, x: int, y: int, buttons: list):
             if 0 <= x + i < width and 0 <= y + j < height:
                 
                 if i!= 0 or j!=0 :
+                    
                     if buttons[y + j][x + i]["text"]  in unclickedText:
                         casillasCubiertas +=1
                         print(f"Casillas cubiertas added at {x+i}, {y+j}: {casillasCubiertas}")
-                if gameMap[y + j][x + i] == 0:
-                    buttons[y + j][x + i]["text"] = getNeighborBombs(gameMap, x + i, y + j)
-                    
-                else:
-                    buttons[y + j][x + i]["text"] = gameMap[y + j][x + i]
-                if gameMap[y + j][x + i] == 500:
-                    buttons[y + j][x + i]["text"] = str('💣')
+                        if gameMap[y + j][x + i] == 0:
+                            buttons[y + j][x + i]["text"] = getNeighborBombs(gameMap, x + i, y + j)
+                        elif gameMap[y + j][x + i]  ==100:
+                            buttons[y + j][x + i]["text"] = str('🛡️')
+                        elif gameMap[y + j][x + i] == 200:
+                            buttons[y + j][x + i]["text"] = str('📡')
+                        elif gameMap[y + j][x + i] >300 and gameMap[y + j][x + i] < 500:
+                            buttons[y + j][x + i]["text"] = str('⚡')
+                        # if it is a bomb
+                        elif gameMap[y + j][x + i] == 500:
+                            buttons[y + j][x + i]["text"] = str('💣')
                     
 def shieldEffect( gameMap: list, x: int, y: int, buttons: list):
     # Adds a shield to the game
@@ -551,11 +558,13 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     global casillasCubiertas
     global currentFlags
     global remainingBombs
+    unclickedText = ["🚩", ""]  # Text for unclicked cell   s
+    
 
     usedShields=0
 
     casillasCubiertas +=1
-
+    print(f"Clicked squares: {casillasCubiertas}, flags: {currentFlags}, total: {totalCasillas}")
     if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
         lose(False)
 
@@ -571,7 +580,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
     if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
         remainingFlags += 1
 
-    if gameMap[buttonHeight][buttonWidth] == 500 and buttonSet[buttonHeight][buttonWidth]["text"] != str(['💥', getNeighborBombs(gameMap,buttonWidth,buttonHeight)]):
+    if gameMap[buttonHeight][buttonWidth] == 500 and buttonSet[buttonHeight][buttonWidth]["text"] not in unclickedText:
         
         if buttonSet[buttonHeight][buttonWidth]["text"] == "🚩":
             remainingFlags -= 1
@@ -591,6 +600,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
         
     elif gameMap[buttonHeight][buttonWidth] == 200:
         radarEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
+        buttons[buttonHeight][buttonWidth]["text"] = str('📡 off')
     elif gameMap[buttonHeight][buttonWidth] >= 300 and gameMap[buttonHeight][buttonWidth] < 500: 
         powerUpEffect(gameMap, buttonWidth, buttonHeight, buttonSet)
     else:
@@ -602,11 +612,14 @@ def flag( event ):
     global currentFlags
     if event.widget["text"] == "🚩":
         remainingFlags +=1
-        currentFlags +=1
+        
         event.widget.config(text="")
     elif event.widget["text"] == "":
         remainingFlags -= 1
+        currentFlags +=1
         event.widget.config(text="🚩")
+    if casillasCubiertas == totalCasillas or casillasCubiertas + currentFlags == totalCasillas:
+        lose(False)
 
 
 if sys.platform == "darwin":
@@ -630,10 +643,12 @@ def createButtons():
                                 height=40)
             button  =tk.Button(cell_frame,
                     name = str(i)  +str(j),
-                    bg="black",
+                    
+                    bg="#FFFFFF",
                     
                     border=0,
-                    fg="white",
+#Please reverse this stiling
+                    fg="#000000",
                     width=4,
                     height=2,
                     activebackground="green yellow",
@@ -835,3 +850,14 @@ return_Button.pack()
 #Inicia el juego
 menu()
 myApp.mainloop()
+
+
+"""
+- Changed first two lines of function jugar()
+- Changed createButtons() fg color, PLEASE REVERSE THIS CHANGE
+- Change size for testing as well as number of objects, REVERSE TO YOUR LIKING
+- changed flag function
+- changed radar function
+- changed click function
+
+"""
