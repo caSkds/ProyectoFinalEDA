@@ -861,82 +861,111 @@ def quicksort(lista):
 
 ---
 
-### Guardado de puntajes
+##  Sistema de Guardado y Visualización de Puntajes en Excel
 
-La función `guardarPuntaje()` es responsable de almacenar las puntuaciones de los jugadores en un archivo de Excel (`puntajes.xlsx`). Se asegura de conservar solo el **mejor puntaje de cada jugador**.
+##  Función `guardarPuntaje(nombre, puntaje, archivo="puntajes.xlsx")`
 
-```python
-def guardarPuntaje(nombre, puntaje, archivo="puntajes.xlsx"):
-    if os.path.exists(archivo):
-        libro = load_workbook(archivo)
-        hoja = libro.active
-    else:
-        libro = Workbook()
-        hoja = libro.active
-        hoja.append(["Nombre", "Puntaje"])
+### Objetivo:
+Guardar el mejor puntaje de cada jugador en un archivo `.xlsx`. Si el jugador ya existe y su nuevo puntaje es mayor, se actualiza.
 
-    datos = {}
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
-        nombreExistente, puntajeExistente = fila
-        if nombreExistente not in datos or puntajeExistente > datos[nombreExistente]:
-            datos[nombreExistente] = puntajeExistente
+### Parámetros:
+- `nombre`: Nombre del jugador.
+- `puntaje`: Puntaje obtenido.
+- `archivo`: Nombre del archivo Excel (por defecto: `"puntajes.xlsx"`).
 
-    if nombre in datos:
-        if puntaje > datos[nombre]:
-            datos[nombre] = puntaje
-    else:
-        datos[nombre] = puntaje
+### Lógica:
+1. **Carga o crea el archivo Excel**:
+   ```python
+   if os.path.exists(archivo):
+       libro = load_workbook(archivo)
+       hoja = libro.active
+   else:
+       libro = Workbook()
+       hoja = libro.active
+       hoja.append(["Nombre", "Puntaje"])
+   ```
 
-    libro.remove(hoja)
-    hoja = libro.create_sheet(title="Sheet")
-    hoja.append(["Nombre", "Puntaje"])
-    for nombreGuardado, puntajeGuardado in datos.items():
-        hoja.append([nombreGuardado, puntajeGuardado])
+2. **Carga los datos existentes**:
+   ```python
+   datos = {}
+   for fila in hoja.iter_rows(min_row=2, values_only=True):
+       nombreExistente, puntajeExistente = fila
+       if nombreExistente not in datos or puntajeExistente > datos[nombreExistente]:
+           datos[nombreExistente] = puntajeExistente
+   ```
 
-    libro.save(archivo)
-    print(f"Puntaje guardado: {nombre} - {puntaje}")
-```
+3. **Actualiza el puntaje si es necesario**:
+   ```python
+   if nombre in datos:
+       if puntaje > datos[nombre]:
+           datos[nombre] = puntaje
+   else:
+       datos[nombre] = puntaje
+   ```
 
-> La función verifica si el archivo ya existe. Si no, lo crea. Luego compara los puntajes previos y solo guarda el nuevo si es mayor. Finalmente, sobrescribe la hoja entera con los datos actualizados.
-
----
-
-### Mostrar Top 10
-
-La función `mostrarTop10()` se encarga de leer el archivo de puntajes, ordenarlos con `quicksort()` y desplegar en pantalla los 10 mejores puntajes.
-
-```python
-def mostrarTop10(archivo="puntajes.xlsx"):
-    if not os.path.exists(archivo):
-        print("Archivo no encontrado.")
-        return
-
-    libro = load_workbook(archivo)
-    hoja = libro.active
-
-    datos = []
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
-        nombre, puntaje = fila
-        datos.append((nombre, puntaje))
-
-    datosOrdenados = quicksort(datos)
-    top10 = datosOrdenados[:10]
-
-    mensaje = ""
-    for i, (nombre, puntaje) in enumerate(top10, start=1):
-        mensaje += f"{i}. {nombre} - {puntaje}\n"
-
-    menu_frame.pack_forget()
-    top_Frame.pack()
-    top_Label.config(text=mensaje)
-    return_Button_Frame.pack()
-```
-
-> Se muestran los datos directamente en la interfaz gráfica con etiquetas `tk.Label` y estructuras `tk.Frame`.
+4. **Reescribe la hoja Excel**:
+   ```python
+   libro.remove(hoja)
+   hoja = libro.create_sheet(title="Sheet")
+   hoja.append(["Nombre", "Puntaje"])
+   for nombreGuardado, puntajeGuardado in datos.items():
+       hoja.append([nombreGuardado, puntajeGuardado])
+   libro.save(archivo)
+   print(f"Puntaje guardado: {nombre} - {puntaje}")
+   ```
 
 ---
 
-### Regresar al menú
+## Función `mostrarTop10(archivo="puntajes.xlsx")`
+
+### Objetivo:
+Mostrar los 10 mejores puntajes registrados.
+
+### Pasos:
+1. **Verifica si el archivo existe**:
+   ```python
+   if not os.path.exists(archivo):
+       print("Archivo no encontrado.")
+       return
+   ```
+
+2. **Carga y extrae datos**:
+   ```python
+   libro = load_workbook(archivo)
+   hoja = libro.active
+   datos = []
+   for fila in hoja.iter_rows(min_row=2, values_only=True):
+       nombre, puntaje = fila
+       datos.append((nombre, puntaje))
+   ```
+
+3. **Ordena y selecciona el Top 10**:
+   ```python
+   datosOrdenados = quicksort(datos)
+   top10 = datosOrdenados[:10]
+   ```
+
+4. **Genera el mensaje**:
+   ```python
+   mensaje = ""
+   for i, (nombre, puntaje) in enumerate(top10, start=1):
+       mensaje += f"{i}. {nombre} - {puntaje}\n"
+   ```
+
+5. **Muestra el Top 10 en la interfaz**:
+   ```python
+   menu_frame.pack_forget()
+   top_Frame.pack()
+   top_Label.config(text=mensaje)
+   return_Button_Frame.pack()
+   ```
+
+---
+
+## Función `return_Frame()`
+
+### Objetivo:
+Volver al menú principal desde el Top 10.
 
 ```python
 def return_Frame():
@@ -945,14 +974,38 @@ def return_Frame():
     menu_frame.pack()
 ```
 
-> Esta función permite regresar al menú principal desde el Top 10, ocultando los marcos que ya no se necesitan.
+---
+
+## Algoritmo de Ordenamiento: `quicksort()`
+
+Ordena los puntajes de mayor a menor.
+
+```python
+def quicksort(lista):
+    if len(lista) <= 1:
+        return lista
+
+    pivote = lista[0]
+    iguales = [pivote]
+    mayores = []
+    menores = []
+
+    for elemento in lista[1:]:
+        if elemento[1] > pivote[1]:
+            mayores.append(elemento)
+        elif elemento[1] < pivote[1]:
+            menores.append(elemento)
+        else:
+            iguales.append(elemento)
+
+    return quicksort(mayores) + iguales + quicksort(menores)
+```
 
 ---
 
-### Interfaz gráfica del Top 10
+##  Interfaz Gráfica del Top 10 (`tkinter`)
 
-Se define un nuevo `Frame` junto con sus etiquetas (`Label`) y botón (`Button`) que permite mostrar la tabla de posiciones con estilo visual coherente al resto de la aplicación.
-
+### Creación del contenedor principal:
 ```python
 top_Frame = tk.Frame(myApp,
                      bg="black",
@@ -961,20 +1014,29 @@ top_Frame = tk.Frame(myApp,
                      width="500",
                      height="600")
 top_Frame.pack_propagate(False)
+```
 
+### Título del Top 10:
+```python
 top_title_Label = tk.Label(top_Frame,
                            bg="black",
-                           font = ("",30),
+                           font=("",30),
                            fg="white",
                            text="Top Score")
+```
 
+### Label para mostrar el contenido:
+```python
 top_Label = tk.Label(top_Frame,
                      text="",
                      bg="black",
                      fg="white",
-                     font = ("",20),
+                     font=("",20),
                      pady=20)
+```
 
+### Botón para regresar:
+```python
 return_Button_Frame = tk.Frame(myApp,
                                bg="black",
                                highlightbackground="green yellow",
@@ -984,13 +1046,33 @@ return_Button = tk.Button(return_Button_Frame,
                           bg="black",
                           fg="white",
                           text="Regresar",
-                          font = ("",20),
-                          command=return_Frame
-                          )
+                          font=("",20),
+                          command=return_Frame)
+```
 
+### Empaquetado de los elementos:
+```python
 top_title_Label.pack(pady=50)
 top_Label.pack()
 return_Button.pack()
 ```
 
-> El botón "Regresar" ejecuta la función `return_Frame()` que permite volver al menú principal.
+---
+
+## Requisitos
+
+- Librerías necesarias:
+  ```python
+  import os
+  import tkinter as tk
+  from openpyxl import Workbook, load_workbook
+  ```
+
+---
+
+## Resultado
+
+Este sistema permite:
+- Guardar el mejor puntaje por jugador.
+- Reemplazar si el nuevo puntaje es mejor.
+- Ver los 10 mejores puntajes en pantalla con un diseño claro y llamativo.
