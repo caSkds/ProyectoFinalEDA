@@ -829,3 +829,168 @@ def salir():
     myApp.destroy()
 ```
 Para guardar la puntuacion se llama a la funcion guardaarpuntaje.
+
+## Sistema de Puntajes
+
+### Algoritmo de ordenamiento - Quicksort
+
+Se implementa una versión personalizada del algoritmo `quicksort` que permite ordenar las puntuaciones en orden descendente, considerando la posición `[1]` de cada tupla (es decir, el puntaje del jugador).
+
+```python
+def quicksort(lista):
+    if len(lista) <= 1:
+        return lista
+    
+    pivote = lista[0]
+    iguales = [pivote]
+    mayores = []
+    menores = []
+
+    for elemento in lista[1:]:
+        if elemento[1] > pivote[1]:
+            mayores.append(elemento)
+        elif elemento[1] < pivote[1]:
+            menores.append(elemento)
+        else:
+            iguales.append(elemento)
+
+    return quicksort(mayores) + iguales + quicksort(menores)
+```
+
+> Este algoritmo divide la lista en elementos mayores, menores e iguales al pivote, aplicando recursividad. Así se asegura que los puntajes más altos estén al inicio.
+
+---
+
+### Guardado de puntajes
+
+La función `guardarPuntaje()` es responsable de almacenar las puntuaciones de los jugadores en un archivo de Excel (`puntajes.xlsx`). Se asegura de conservar solo el **mejor puntaje de cada jugador**.
+
+```python
+def guardarPuntaje(nombre, puntaje, archivo="puntajes.xlsx"):
+    if os.path.exists(archivo):
+        libro = load_workbook(archivo)
+        hoja = libro.active
+    else:
+        libro = Workbook()
+        hoja = libro.active
+        hoja.append(["Nombre", "Puntaje"])
+
+    datos = {}
+    for fila in hoja.iter_rows(min_row=2, values_only=True):
+        nombreExistente, puntajeExistente = fila
+        if nombreExistente not in datos or puntajeExistente > datos[nombreExistente]:
+            datos[nombreExistente] = puntajeExistente
+
+    if nombre in datos:
+        if puntaje > datos[nombre]:
+            datos[nombre] = puntaje
+    else:
+        datos[nombre] = puntaje
+
+    libro.remove(hoja)
+    hoja = libro.create_sheet(title="Sheet")
+    hoja.append(["Nombre", "Puntaje"])
+    for nombreGuardado, puntajeGuardado in datos.items():
+        hoja.append([nombreGuardado, puntajeGuardado])
+
+    libro.save(archivo)
+    print(f"Puntaje guardado: {nombre} - {puntaje}")
+```
+
+> La función verifica si el archivo ya existe. Si no, lo crea. Luego compara los puntajes previos y solo guarda el nuevo si es mayor. Finalmente, sobrescribe la hoja entera con los datos actualizados.
+
+---
+
+### Mostrar Top 10
+
+La función `mostrarTop10()` se encarga de leer el archivo de puntajes, ordenarlos con `quicksort()` y desplegar en pantalla los 10 mejores puntajes.
+
+```python
+def mostrarTop10(archivo="puntajes.xlsx"):
+    if not os.path.exists(archivo):
+        print("Archivo no encontrado.")
+        return
+
+    libro = load_workbook(archivo)
+    hoja = libro.active
+
+    datos = []
+    for fila in hoja.iter_rows(min_row=2, values_only=True):
+        nombre, puntaje = fila
+        datos.append((nombre, puntaje))
+
+    datosOrdenados = quicksort(datos)
+    top10 = datosOrdenados[:10]
+
+    mensaje = ""
+    for i, (nombre, puntaje) in enumerate(top10, start=1):
+        mensaje += f"{i}. {nombre} - {puntaje}\n"
+
+    menu_frame.pack_forget()
+    top_Frame.pack()
+    top_Label.config(text=mensaje)
+    return_Button_Frame.pack()
+```
+
+> Se muestran los datos directamente en la interfaz gráfica con etiquetas `tk.Label` y estructuras `tk.Frame`.
+
+---
+
+### Regresar al menú
+
+```python
+def return_Frame():
+    top_Frame.pack_forget()
+    return_Button_Frame.pack_forget()
+    menu_frame.pack()
+```
+
+> Esta función permite regresar al menú principal desde el Top 10, ocultando los marcos que ya no se necesitan.
+
+---
+
+### Interfaz gráfica del Top 10
+
+Se define un nuevo `Frame` junto con sus etiquetas (`Label`) y botón (`Button`) que permite mostrar la tabla de posiciones con estilo visual coherente al resto de la aplicación.
+
+```python
+top_Frame = tk.Frame(myApp,
+                     bg="black",
+                     highlightbackground="magenta3",
+                     highlightthickness=1,
+                     width="500",
+                     height="600")
+top_Frame.pack_propagate(False)
+
+top_title_Label = tk.Label(top_Frame,
+                           bg="black",
+                           font = ("",30),
+                           fg="white",
+                           text="Top Score")
+
+top_Label = tk.Label(top_Frame,
+                     text="",
+                     bg="black",
+                     fg="white",
+                     font = ("",20),
+                     pady=20)
+
+return_Button_Frame = tk.Frame(myApp,
+                               bg="black",
+                               highlightbackground="green yellow",
+                               highlightthickness=1)
+
+return_Button = tk.Button(return_Button_Frame,
+                          bg="black",
+                          fg="white",
+                          text="Regresar",
+                          font = ("",20),
+                          command=return_Frame
+                          )
+
+top_title_Label.pack(pady=50)
+top_Label.pack()
+return_Button.pack()
+```
+
+> El botón "Regresar" ejecuta la función `return_Frame()` que permite volver al menú principal.
