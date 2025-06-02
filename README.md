@@ -518,9 +518,109 @@ def powerUpEffect(gameMap: list, x: int, y: int, buttons: list):
 
 
 ```
-#### Mini Juego
+## MiniJuego
+El minijuego es activado al presionar una bomba y no tener escudos:
+```python
+            if remainingShields == 0:
+                global mina_actual
+                mina_actual = (buttonHeight, buttonWidth)
+                mostrarMinijuego()
+```
+En la función `mostrarMinijuego()` se oculta el juego principal para mostrar el minijuego
+```python
+def mostrarMinijuego():
+    gameFrame.pack_forget()
+    minijuegoFrame.pack() 
+    muestraFlechas.pack()
+    info.pack(pady=40)
+    etiqueta_tiempo.pack()
+    iniciarJuego()
+```
+`iniciarJuego()` activa un temporizador de 4 segundos (puede modificarse) y desactiva uno previo en caso de haberlo; luego se llena una lista de 5 a 10 elementos con numeros del 1 al 4.
+Luego se activa un label que va a mostrar esa secuencia; pero mostrará una secuencia de flechas en vez de los numeros; esto es con ayuda de un diccionario previamente creado el cual transforma los números del 1 al 4 el esas flechas. Y activa el uso de las flechas del teclado
+```python
+flechas = {1: "↑", 2: "↓", 3: "←", 4: "→"}#El diccionario para la secuencia
+
+def iniciarJuego():
+    global secuencia, tiempo_inicio, temporizadorPaTodos
+    if temporizadorPaTodos:
+        myApp.after_cancel(temporizadorPaTodos) #Si ya habia un temporizador; lo elimina y empieza uno nuevo
+    tiempo_inicio = time.time() #El tiempo de inicio inicia en 0
+    secuencia = [random.randint(1, 4) for i in range(random.randint(5, 10))] #Se va a ingresar a la secuencia 5 a 10 numeros entre 1 y 4
+    muestraFlechas.config(text=' '.join([flechas[num] for num in secuencia]),
+                          font=("arial",40),
+                          fg="green yellow",
+                          bg="black",
+                          pady=70) #Se muestran las flechas en la etiqueta
+    info.config(text="¡Ingresa la secuencia!",font=("arial",20),bg="black",fg="green yellow") #La label informativa 
+    actualizarTemporizador() #Se inicia el nuevo temporizador
+    myApp.bind('<Key>', teclaPresionada) #Se habilitan las flechas
+```
 ### Victoria y derrota
-- En caso de no desactivar una bomba a tiempo, se llama a la función `lose()`la cual  muestra la pantalla de pérdida
+- En caso de no desactivar una bomba a tiempo o equivocarse en la secuencia, se llama a la función `lose()`la cual  muestra la pantalla de pérdida
+  #### Derrota por tiempo
+```python
+def actualizarTemporizador():
+    global temporizadorPaTodos, tiempo_inicio #Variables que se van a ir actualizando
+    tiempoTranscurrido = int(time.time() - tiempo_inicio) #El tiempo de inicio se va a ir actualizando conforme al tiempo
+    tiempoRestante = 4 - tiempoTranscurrido #Aquí podríamos añadir mas tiempo; la verdad no se
+    etiqueta_tiempo.config(text=f'Tiempo: {tiempoRestante} s',font=("arial",20),fg="white",bg="black") #Esta el la label para el tiempo
+    
+    if tiempoRestante > 0:
+        temporizadorPaTodos = myApp.after(100, actualizarTemporizador) #Se va actualizando el id del temporizador
+    else:
+        info.config(text="Se acabó el tiempo")#Si se llegó a 0; se acaba el juego
+        muestraFlechas.config(text="") #Desaparecen las flechas
+        myApp.unbind('<Key>')
+        # Si se acaba el tiempo, va a la pantalla de derrota
+        irADerrota()
+```
+  #### Derrota por haberse equivocado en la secuencia
+```python
+def teclaPresionada(tecla):
+    global secuencia
+    convertidor = {'Up': 1, 'Down': 2, 'Left': 3, 'Right': 4} #El diccionario convierte las teclas ingresadas en numeros
+    if secuencia: #Mientras la secuencia contenga algo:
+        if convertidor[tecla.keysym] == secuencia[0]: #Si el jugador le atinó:
+            secuencia.pop(0) #Elimina de la secuencia el numero ingresado
+            muestraFlechas.config(text=' '.join([flechas[num] for num in secuencia])) #Se actualiza el visor de flechas
+            if not secuencia: #Si acabó satisfactoriamente la secuencia:
+                info.config(text="Bomba desarmada") #Muestra la leyenda
+                myApp.unbind('<Key>') #Se quita lo de las key
+                if temporizadorPaTodos:
+                    myApp.after_cancel(temporizadorPaTodos) #Detiene y cancela el temporizador
+                # Si gana, regresa al juego principal
+                volverAlJuego() #Se continua en la partida
+        else:
+            info.config(text="La bomba explotó") #Si falla; pierde la partida
+            muestraFlechas.config(text="") #Ya no se muestra la secuencia en el label
+            myApp.unbind('<Key>') #Se quitan los permisos para las flechitas
+            if temporizadorPaTodos:
+                myApp.after_cancel(temporizadorPaTodos) #Se detiene el temporizador
+            # Si explota la bomba, va a la pantalla de derrota
+            irADerrota() #Va a la pantalla de derrota
+```
+  #### Funcion de ir a derrota
+```python
+def irADerrota():
+    minijuegoFrame.pack_forget() #Se oculta el minijuego
+    lose() #Se pierde
+```
+- En caso de haber ganado el minijuego; se llama a la funcion `volverAlJuego()`; la cual oculta el minijuego y muestra otra vez el juego principal; Actualizando el ícono de la bomba indicando que está desarmada.
+```python
+def volverAlJuego():
+    minijuegoFrame.pack_forget() #Se oculta el minijuego si se gana
+    muestraFlechas.config(text="") #Se ocultan las labels
+    info.config(text="") 
+    etiqueta_tiempo.config(text="")
+    gameFrame.pack() #Se vuelve al buscaminas
+    global mina_actual
+    if mina_actual is not None:
+        h, w = mina_actual
+        map[h][w] = -1
+        buttons[h][w]["text"] = "🪛"
+        mina_actual = None
+```
 - Tras darle click a un botón se toma la suma de casillas clickeadas y banderas actuales. Si esta suma es igual al total de casillas en el tablero, se llama  a la misma función con un parámetro establecido en falso. Esto se verifica antes y después de darle click a un botón. Se calcula la puntuación obtenida de la siguiente manera:
 
 $Puntuación =   (T_{Final}\cdot-0.001 +100)\cdot powerMultiplier \cdot \frac{casillasCubiertas + banderas}{totalCasillas}$
