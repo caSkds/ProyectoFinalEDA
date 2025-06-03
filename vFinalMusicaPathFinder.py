@@ -635,7 +635,7 @@ def buttonClick(gameMap: list, name : str,buttonSet : list):
                 shieldLabel.config(text="🛡️"+str(remainingShields))
                 usedShields +=1
             buttonSet[buttonHeight][buttonWidth]["text"] = str('💣')
-            sonido_bomba.play()  # Efecto bomba si no hay escudo
+            sonido_bomba.play()  # Efecto bomba 
             remainingBombs -= 1
             casillasCubiertas +=1
             
